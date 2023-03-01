@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -11,13 +13,13 @@ from tqdm import tqdm
 
 class Config():
     data_path = './ZUCK.01.01.2022.31.12.2022.2.12.0.cn.utf8.00000000.xls'
-    timestep = 1  # 时间步长，就是利用多少时间窗口
+    timestep = 2  # 时间步长，就是利用多少时间窗口
     batch_size = 32  # 批次大小
-    feature_size = 1  # 每个步长对应的特征数量，这里只使用1维，每天的风速
-    hidden_size = 256  # 隐层大小
+    feature_size = 3  # 每个步长对应的特征数量，这里只使用1维，每天的风速
+    hidden_size = 512  # 隐层大小
     output_size = 1  # 由于是单输出任务，最终输出层大小为1，预测未来1天风速
-    num_layers = 2  # gru的层数
-    epochs = 10  # 迭代轮数
+    num_layers = 4  # gru的层数
+    epochs = 50  # 迭代轮数
     best_loss = 0  # 记录损失
     learning_rate = 0.0003  # 学习率
     model_name = 'gru'  # 模型名称
@@ -27,13 +29,17 @@ class Config():
 config = Config()
 
 # 1.加载时间序列数据
-df = pd.read_csv(config.data_path, index_col=6)
+df = pd.read_excel(config.data_path, header=6)
+# print(df)
 
 # 2.将数据进行标准化
 scaler = MinMaxScaler()
-scaler_model = MinMaxScaler()
-data = scaler_model.fit_transform(np.array(df))
-scaler.fit_transform(np.array(df['']).reshape(-1, 1))
+# scaler_model = MinMaxScaler()
+# data = scaler_model.fit_transform(np.array(df['T']))
+data_T = scaler.fit_transform(np.array(df['T']).reshape(-1, 1))
+data_P0 = scaler.fit_transform(np.array(df['P0']).reshape(-1, 1))
+data_P = scaler.fit_transform(np.array(df['P']).reshape(-1, 1))
+data = np.concatenate((data_T,data_P0,data_P),axis=1)
 
 
 # 形成训练数据，例如12345789 12-3456789
@@ -43,7 +49,7 @@ def split_data(data, timestep, feature_size):
 
     # 将整个窗口的数据保存到X中，将未来一天保存到Y中
     for index in range(len(data) - timestep):
-        dataX.append(data[index: index + timestep][:, 0])
+        dataX.append(data[index: index + timestep])
         dataY.append(data[index + timestep][0])
 
     dataX = np.array(dataX)
@@ -164,14 +170,14 @@ print('Finished Training')
 # 9.绘制结果
 plot_size = 200
 plt.figure(figsize=(12, 8))
-plt.plot(scaler.inverse_transform((model(x_train_tensor).detach().numpy()[: plot_size]).reshape(-1, 1)), "b")
-plt.plot(scaler.inverse_transform(y_train_tensor.detach().numpy().reshape(-1, 1)[: plot_size]), "r")
+plt.plot(scaler.inverse_transform((model(x_train_tensor).detach().numpy()[: plot_size]).reshape(-1, 1)), "b",label='traindata_pre_label')
+plt.plot(scaler.inverse_transform(y_train_tensor.detach().numpy().reshape(-1, 1)[: plot_size]), "r",label='traindata_true_label')
 plt.legend()
 plt.show()
 
 y_test_pred = model(x_test_tensor)
 plt.figure(figsize=(12, 8))
-plt.plot(scaler.inverse_transform(y_test_pred.detach().numpy()[: plot_size]), "b")
-plt.plot(scaler.inverse_transform(y_test_tensor.detach().numpy().reshape(-1, 1)[: plot_size]), "r")
+plt.plot(scaler.inverse_transform(y_test_pred.detach().numpy()[: plot_size]), "b",label='valdata_pre_label')
+plt.plot(scaler.inverse_transform(y_test_tensor.detach().numpy().reshape(-1, 1)[: plot_size]), "r",label='valdata_true_label')
 plt.legend()
 plt.show()
