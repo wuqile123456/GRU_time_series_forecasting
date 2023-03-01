@@ -27,13 +27,13 @@ class Config():
 config = Config()
 
 # 1.加载时间序列数据
-df = pd.read_csv(config.data_path, index_col=0)
+df = pd.read_csv(config.data_path, index_col=6)
 
 # 2.将数据进行标准化
 scaler = MinMaxScaler()
 scaler_model = MinMaxScaler()
 data = scaler_model.fit_transform(np.array(df))
-scaler.fit_transform(np.array(df['WIND']).reshape(-1, 1))
+scaler.fit_transform(np.array(df['']).reshape(-1, 1))
 
 
 # 形成训练数据，例如12345789 12-3456789
@@ -157,7 +157,7 @@ for epoch in range(config.epochs):
 
     if test_loss < config.best_loss:
         config.best_loss = test_loss
-        torch.save(model.state_dict(), "gru.pth")
+        torch.save(model.state_dict(), config.save_path)
 
 print('Finished Training')
 
