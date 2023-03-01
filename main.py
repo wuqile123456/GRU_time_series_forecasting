@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 
 class Config():
-    data_path = './data/wind_dataset.csv'
+    data_path = './ZUCK.01.01.2022.31.12.2022.2.12.0.cn.utf8.00000000.xls'
     timestep = 1  # 时间步长，就是利用多少时间窗口
     batch_size = 32  # 批次大小
     feature_size = 1  # 每个步长对应的特征数量，这里只使用1维，每天的风速
