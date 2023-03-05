@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
-print("ceshiyixai")
+
 class Config():
     data_path = './ZUCK.01.01.2022.31.12.2022.2.12.0.cn.utf8.00000000.xls'
     timestep = 2  # 时间步长，就是利用多少时间窗口
